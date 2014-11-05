@@ -1,4 +1,4 @@
 ssh-manager
 ===========
 
-ssh-manager project : the aim is to create a cute and tiny bash program to make ssh connexions easier to use
+ssh-manager project : cute and tiny shell script to make ssh connexions easier to use
