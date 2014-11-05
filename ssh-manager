@@ -1,3 +1,107 @@
 #!/usr/bin/env sh
 
+DATAFILE="$HOME/.ssh_servers"
+SSH_DEFAULT_PORT=22
 
+
+
+test_host() {
+	ping -c1 -t 2 $* > /dev/null
+	if [ $? != 0 ] ; then
+		echo -n "["
+		cecho -n -red "KO"
+		echo -n "]  "
+	
+	else
+		echo -n "["
+		cecho -n -green "UP"
+		echo -n "]  "
+	fi 
+}
+
+
+list_servers() {	
+	separator
+	echo "List of servers for user `whoami`" 
+	separator
+	
+	while read ligne
+	do
+		name=`echo "$ligne" | cut -d':' -f1`
+		user=`echo "$ligne" | cut -d':' -f2`
+		host=`echo "$ligne" | cut -d':' -f3`
+		port=`echo "$ligne" | cut -d':' -f4`
+
+		test_host "$host"
+
+		echo -n " "
+		cecho -n -blue $label
+		echo -n ' ==> '
+		cecho -n -red $user 
+		cecho -n -yellow "@"
+		cecho -n -white $ip
+		echo -n ' -> '
+		
+		if [ "$port" == "" ]; then
+			port=$SSH_DEFAULT_PORT
+		fi
+		
+		cecho -yellow $port
+		echo
+
+		echo "[ $name ]  ------  ${user}@${host} -> ${port}"
+	
+	done < "$DATAFILE"
+}
+
+
+list_commands() {
+	separator
+	echo "Availables commands"
+	separator
+	echo "cc  <alias> [username]                           connect to server"
+	echo "add <alias>:<user>:<host>:[port]                 add new server"
+	echo "del <alias>                                      delete server"
+	echo "export                                           export config"
+}
+
+
+separator() {
+	echo "-------------------------------------------------------------------------"
+}
+
+
+cecho() {
+	while [ "$1" ]; do
+		
+		case "$1" in 
+		-normal)        color="\033[00m" ;;
+		-black)         color="\033[30;01m" ;;
+		-red)           color="\033[31;01m" ;;
+		-green)         color="\033[32;01m" ;;
+		-yellow)        color="\033[33;01m" ;;
+		-blue)          color="\033[34;01m" ;;
+		-magenta)       color="\033[35;01m" ;;
+		-cyan)          color="\033[36;01m" ;;
+		-white)         color="\033[37;01m" ;;
+		-n)             one_line=1;   shift ; continue ;;
+		*)              echo -n "$1"; shift ; continue ;;
+		esac
+
+		shift
+		echo -n "$color"
+		echo -n "$1"
+		echo -n "\033[00m"
+		shift
+	done
+}
+
+
+if [ ! -f "$DATAFILE" ]
+then
+	echo 'exemple:user:host:port' > "$DATAFILE"
+fi
+
+list_servers
+
+list_commands
